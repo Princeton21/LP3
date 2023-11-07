@@ -1,45 +1,48 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-class Node{
+class Node {
 public:
     char data;
     int freq;
-    Node *left;
-    Node *right;
+    Node* left;
+    Node* right;
 
-    Node(char d, int f){
+    Node(char d, int f) {
         data = d;
         freq = f;
         left = right = nullptr;
     }
 
-    ~Node(){
+    ~Node() {
         delete left;
         delete right;
     }
 };
 
-class Compare{
+class Compare {
 public:
-    bool operator()(Node *a, Node *b){
+    bool operator()(Node* a, Node* b) {
         return a->freq > b->freq;
     }
 };
 
-Node *buildHuffmanTree(map<char, int> &freqMap){
-    priority_queue<Node *, vector<Node *>, Compare> pq;
-    for (auto pair : freqMap){
-        Node *newNode = new Node(pair.first, pair.second);
+Node* root = nullptr; 
+map<char, string> codes;
+
+Node* buildHuffmanTree(map<char, int>& freqMap) {
+    priority_queue<Node*, vector<Node*>, Compare> pq;
+    for (auto pair : freqMap) {
+        Node* newNode = new Node(pair.first, pair.second);
         pq.push(newNode);
     }
-    while (pq.size() > 1){
-        Node *left = pq.top();
+    while (pq.size() > 1) {
+        Node* left = pq.top();
         pq.pop();
-        Node *right = pq.top();
+        Node* right = pq.top();
         pq.pop();
 
-        Node *internalNode = new Node('$', left->freq + right->freq);
+        Node* internalNode = new Node('$', left->freq + right->freq);
         internalNode->left = left;
         internalNode->right = right;
 
@@ -49,8 +52,8 @@ Node *buildHuffmanTree(map<char, int> &freqMap){
     return pq.top();
 }
 
-void generateCodes(Node *root, string code, map<char, string> &codes){
-    if (root->left == nullptr && root->right == nullptr){
+void generateCodes(Node* root, string code, map<char, string>& codes) {
+    if (root->left == nullptr && root->right == nullptr) {
         codes[root->data] = code;
         return;
     }
@@ -58,48 +61,49 @@ void generateCodes(Node *root, string code, map<char, string> &codes){
     generateCodes(root->right, code + "1", codes);
 }
 
-map<char, string> codes;
-
-string huffmanEncode(string input){
+string huffmanEncode(string input) {
     map<char, int> freqMap;
-    for (char c : input)freqMap[c]++;
-    Node *root = buildHuffmanTree(freqMap);
+    for (char c : input) freqMap[c]++;
+    root = buildHuffmanTree(freqMap); 
     generateCodes(root, "", codes);
     string encodedString;
-    for (char c : input)encodedString += codes[c];
-    delete root;
-    return encodedString;
+    for (char c : input) encodedString += codes[c];
+    return encodedString; 
 }
 
-string huffmanDecode(string encodedString, map<char, string> &codes){
+string huffmanDecode(string encodedString) { 
     string decodedString;
     string currentCode;
+    Node* current = root; 
 
-    for (char bit : encodedString){
-        currentCode += bit;
-        for (auto pair : codes){
-            if (pair.second == currentCode){
-                decodedString += pair.first;
-                currentCode = "";
-                break;
-            }
+    for (char bit : encodedString) {
+        if (bit == '0') {
+            current = current->left;
+        } else {
+            current = current->right;
+        }
+
+        if (current->left == nullptr && current->right == nullptr) {
+            decodedString += current->data;
+            current = root; 
         }
     }
 
     return decodedString;
 }
 
-int main(){
+int main() {
     string input;
     getline(cin, input);
     string encodedString = huffmanEncode(input);
-
     cout << "Encoded string: " << encodedString << endl;
-
-    string decodedString = huffmanDecode(encodedString, codes);
-
+    
+    string decodedString = huffmanDecode(encodedString);
     cout << "Decoded string: " << decodedString << endl;
+
+    delete root;
 }
+
 // TC - O(nlogn)
 // SC - O(n)
 /*
